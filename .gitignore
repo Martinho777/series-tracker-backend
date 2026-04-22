@@ -1,0 +1,8 @@
+.env
+.env.*
+*.exe
+*.out
+*.test
+/vendor/
+uploads/*
+!uploads/.gitkeep
