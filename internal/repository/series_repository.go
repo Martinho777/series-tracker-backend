@@ -113,3 +113,48 @@ func (r *SeriesRepository) Create(serie *models.Series) (*models.Series, error) 
 
 	return &createdSeries, nil
 }
+
+func (r *SeriesRepository) Update(id int, serie *models.Series) (*models.Series, error) {
+	query := `
+		UPDATE series
+		SET titulo = $1,
+			genero = $2,
+			anio = $3,
+			temporadas = $4,
+			imagen_url = $5,
+			descripcion = $6,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE id = $7
+		RETURNING id, titulo, genero, anio, temporadas, imagen_url, descripcion
+	`
+
+	var updatedSeries models.Series
+
+	err := r.DB.QueryRow(
+		query,
+		serie.Titulo,
+		serie.Genero,
+		serie.Anio,
+		serie.Temporadas,
+		serie.ImagenURL,
+		serie.Descripcion,
+		id,
+	).Scan(
+		&updatedSeries.ID,
+		&updatedSeries.Titulo,
+		&updatedSeries.Genero,
+		&updatedSeries.Anio,
+		&updatedSeries.Temporadas,
+		&updatedSeries.ImagenURL,
+		&updatedSeries.Descripcion,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("error al actualizar la serie: %w", err)
+	}
+
+	return &updatedSeries, nil
+}

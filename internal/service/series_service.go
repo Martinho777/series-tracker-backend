@@ -48,3 +48,32 @@ func (s *SeriesService) CreateSeries(serie *models.Series) (*models.Series, erro
 
 	return s.Repo.Create(serie)
 }
+
+func (s *SeriesService) UpdateSeries(id int, serie *models.Series) (*models.Series, error) {
+	serie.Titulo = strings.TrimSpace(serie.Titulo)
+	serie.Genero = strings.TrimSpace(serie.Genero)
+	serie.Descripcion = strings.TrimSpace(serie.Descripcion)
+	serie.ImagenURL = strings.TrimSpace(serie.ImagenURL)
+
+	if id < 1 {
+		return nil, fmt.Errorf("el id debe ser mayor que 0")
+	}
+
+	if serie.Titulo == "" {
+		return nil, fmt.Errorf("el título es obligatorio")
+	}
+
+	if serie.Genero == "" {
+		return nil, fmt.Errorf("el género es obligatorio")
+	}
+
+	if serie.Anio < 1900 {
+		return nil, fmt.Errorf("el año debe ser mayor o igual a 1900")
+	}
+
+	if serie.Temporadas < 1 {
+		return nil, fmt.Errorf("las temporadas deben ser al menos 1")
+	}
+
+	return s.Repo.Update(id, serie)
+}

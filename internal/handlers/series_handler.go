@@ -89,3 +89,44 @@ func (h *SeriesHandler) CreateSeries(w http.ResponseWriter, r *http.Request) {
 
 	utils.WriteJSON(w, http.StatusCreated, createdSeries)
 }
+
+func (h *SeriesHandler) UpdateSeries(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		utils.WriteError(w, http.StatusMethodNotAllowed, "Método no permitido")
+		return
+	}
+
+	pathParts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+
+	if len(pathParts) != 2 || pathParts[0] != "series" {
+		utils.WriteError(w, http.StatusBadRequest, "Ruta inválida")
+		return
+	}
+
+	id, err := strconv.Atoi(pathParts[1])
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, "El id debe ser un número válido")
+		return
+	}
+
+	var serie models.Series
+
+	err = json.NewDecoder(r.Body).Decode(&serie)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, "El cuerpo de la solicitud debe ser JSON válido")
+		return
+	}
+
+	updatedSeries, err := h.Service.UpdateSeries(id, &serie)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if updatedSeries == nil {
+		utils.WriteError(w, http.StatusNotFound, "Serie no encontrada")
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, updatedSeries)
+}
