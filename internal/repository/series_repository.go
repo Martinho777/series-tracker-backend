@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"series-tracker-backend/internal/models"
 )
@@ -15,14 +16,35 @@ func NewSeriesRepository(db *sql.DB) *SeriesRepository {
 	return &SeriesRepository{DB: db}
 }
 
-func (r *SeriesRepository) GetAll() ([]models.Series, error) {
-	query := `
+func (r *SeriesRepository) GetAll(filters models.SeriesFilters) ([]models.Series, error) {
+	sortField := "id"
+	allowedSortFields := map[string]string{
+		"id":         "id",
+		"titulo":     "titulo",
+		"anio":       "anio",
+		"temporadas": "temporadas",
+	}
+
+	if value, ok := allowedSortFields[filters.Sort]; ok {
+		sortField = value
+	}
+
+	orderDirection := "ASC"
+	if strings.ToUpper(filters.Order) == "DESC" {
+		orderDirection = "DESC"
+	}
+
+	offset := (filters.Page - 1) * filters.Limit
+
+	query := fmt.Sprintf(`
 		SELECT id, titulo, genero, anio, temporadas, imagen_url, descripcion
 		FROM series
-		ORDER BY id ASC
-	`
+		WHERE LOWER(titulo) LIKE LOWER($1)
+		ORDER BY %s %s
+		LIMIT $2 OFFSET $3
+	`, sortField, orderDirection)
 
-	rows, err := r.DB.Query(query)
+	rows, err := r.DB.Query(query, "%"+filters.Query+"%", filters.Limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("error al consultar las series: %w", err)
 	}
@@ -51,7 +73,6 @@ func (r *SeriesRepository) GetAll() ([]models.Series, error) {
 
 	return seriesList, nil
 }
-
 func (r *SeriesRepository) GetByID(id int) (*models.Series, error) {
 	query := `
 		SELECT id, titulo, genero, anio, temporadas, imagen_url, descripcion

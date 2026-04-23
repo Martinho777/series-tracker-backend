@@ -16,8 +16,32 @@ func NewSeriesService(repo *repository.SeriesRepository) *SeriesService {
 	return &SeriesService{Repo: repo}
 }
 
-func (s *SeriesService) GetAllSeries() ([]models.Series, error) {
-	return s.Repo.GetAll()
+func (s *SeriesService) GetAllSeries(filters models.SeriesFilters) ([]models.Series, error) {
+	if filters.Page < 1 {
+		filters.Page = 1
+	}
+
+	if filters.Limit < 1 {
+		filters.Limit = 10
+	}
+
+	if filters.Limit > 50 {
+		filters.Limit = 50
+	}
+
+	filters.Query = strings.TrimSpace(filters.Query)
+	filters.Sort = strings.TrimSpace(filters.Sort)
+	filters.Order = strings.TrimSpace(filters.Order)
+
+	if filters.Sort == "" {
+		filters.Sort = "id"
+	}
+
+	if filters.Order == "" {
+		filters.Order = "asc"
+	}
+
+	return s.Repo.GetAll(filters)
 }
 
 func (s *SeriesService) GetSeriesByID(id int) (*models.Series, error) {

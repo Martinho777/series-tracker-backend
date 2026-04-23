@@ -25,7 +25,25 @@ func (h *SeriesHandler) GetAllSeries(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	seriesList, err := h.Service.GetAllSeries()
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil || page == 0 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil || limit == 0 {
+		limit = 10
+	}
+
+	filters := models.SeriesFilters{
+		Query: r.URL.Query().Get("q"),
+		Sort:  r.URL.Query().Get("sort"),
+		Order: r.URL.Query().Get("order"),
+		Page:  page,
+		Limit: limit,
+	}
+
+	seriesList, err := h.Service.GetAllSeries(filters)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, "No se pudieron obtener las series")
 		return
