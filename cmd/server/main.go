@@ -6,6 +6,7 @@ import (
 
 	"series-tracker-backend/internal/db"
 	"series-tracker-backend/internal/handlers"
+	"series-tracker-backend/internal/middleware"
 	"series-tracker-backend/internal/repository"
 	"series-tracker-backend/internal/service"
 )
@@ -58,8 +59,10 @@ func main() {
 	}
 	})
 
+	handlerWithCORS := middleware.EnableCORS(mux)
+
 	fmt.Println("Servidor corriendo en http://localhost:8080")
-	err = http.ListenAndServe(":8080", mux)
+	err = http.ListenAndServe(":8080", handlerWithCORS)
 	if err != nil {
 		fmt.Println("Error al iniciar el servidor:", err)
 	}
