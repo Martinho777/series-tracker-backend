@@ -77,3 +77,11 @@ func (s *SeriesService) UpdateSeries(id int, serie *models.Series) (*models.Seri
 
 	return s.Repo.Update(id, serie)
 }
+
+func (s *SeriesService) DeleteSeries(id int) (bool, error) {
+	if id < 1 {
+		return false, fmt.Errorf("el id debe ser mayor que 0")
+	}
+
+	return s.Repo.Delete(id)
+}

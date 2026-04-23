@@ -49,12 +49,14 @@ func main() {
 		seriesHandler.GetSeriesByID(w, r)
 	case http.MethodPut:
 		seriesHandler.UpdateSeries(w, r)
+	case http.MethodDelete:
+		seriesHandler.DeleteSeries(w, r)
 	default:
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		fmt.Fprint(w, `{"error":"Método no permitido"}`)
 	}
-})
+	})
 
 	fmt.Println("Servidor corriendo en http://localhost:8080")
 	err = http.ListenAndServe(":8080", mux)

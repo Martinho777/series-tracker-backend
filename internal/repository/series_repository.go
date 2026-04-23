@@ -158,3 +158,19 @@ func (r *SeriesRepository) Update(id int, serie *models.Series) (*models.Series,
 
 	return &updatedSeries, nil
 }
+
+func (r *SeriesRepository) Delete(id int) (bool, error) {
+	query := `DELETE FROM series WHERE id = $1`
+
+	result, err := r.DB.Exec(query, id)
+	if err != nil {
+		return false, fmt.Errorf("error al eliminar la serie: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("error al verificar filas afectadas: %w", err)
+	}
+
+	return rowsAffected > 0, nil
+}
