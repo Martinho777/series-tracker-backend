@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"series-tracker-backend/internal/models"
 	"series-tracker-backend/internal/service"
 	"series-tracker-backend/internal/utils"
 )
@@ -63,4 +65,27 @@ func (h *SeriesHandler) GetSeriesByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, serie)
+}
+
+func (h *SeriesHandler) CreateSeries(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteError(w, http.StatusMethodNotAllowed, "Método no permitido")
+		return
+	}
+
+	var serie models.Series
+
+	err := json.NewDecoder(r.Body).Decode(&serie)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, "El cuerpo de la solicitud debe ser JSON válido")
+		return
+	}
+
+	createdSeries, err := h.Service.CreateSeries(&serie)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, createdSeries)
 }

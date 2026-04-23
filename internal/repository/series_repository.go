@@ -79,3 +79,37 @@ func (r *SeriesRepository) GetByID(id int) (*models.Series, error) {
 
 	return &serie, nil
 }
+
+func (r *SeriesRepository) Create(serie *models.Series) (*models.Series, error) {
+	query := `
+		INSERT INTO series (titulo, genero, anio, temporadas, imagen_url, descripcion)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, titulo, genero, anio, temporadas, imagen_url, descripcion
+	`
+
+	var createdSeries models.Series
+
+	err := r.DB.QueryRow(
+		query,
+		serie.Titulo,
+		serie.Genero,
+		serie.Anio,
+		serie.Temporadas,
+		serie.ImagenURL,
+		serie.Descripcion,
+	).Scan(
+		&createdSeries.ID,
+		&createdSeries.Titulo,
+		&createdSeries.Genero,
+		&createdSeries.Anio,
+		&createdSeries.Temporadas,
+		&createdSeries.ImagenURL,
+		&createdSeries.Descripcion,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("error al crear la serie: %w", err)
+	}
+
+	return &createdSeries, nil
+}

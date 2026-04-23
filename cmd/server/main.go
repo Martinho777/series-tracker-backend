@@ -30,8 +30,20 @@ func main() {
 		fmt.Fprint(w, `{"message":"API del Series Tracker activa"}`)
 	})
 
-	mux.HandleFunc("/series", seriesHandler.GetAllSeries)
-	mux.HandleFunc("/series/", seriesHandler.GetSeriesByID)
+	mux.HandleFunc("/series", func(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		seriesHandler.GetAllSeries(w, r)
+	case http.MethodPost:
+		seriesHandler.CreateSeries(w, r)
+	default:
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		fmt.Fprint(w, `{"error":"Método no permitido"}`)
+	}
+})
+
+mux.HandleFunc("/series/", seriesHandler.GetSeriesByID)
 
 	fmt.Println("Servidor corriendo en http://localhost:8080")
 	err = http.ListenAndServe(":8080", mux)
