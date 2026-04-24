@@ -61,7 +61,9 @@ func main() {
 
 	mux.HandleFunc("/upload", seriesHandler.UploadImage)
 	
-	mux.Handle("/openapi.yaml", http.FileServer(http.Dir(".")))
+	mux.HandleFunc("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "openapi.yaml")
+		})
 	mux.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir("./docs"))))
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 	mux.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
