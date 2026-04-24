@@ -64,7 +64,7 @@ La arquitectura del proyecto está separada por responsabilidades, usando carpet
 ### 1. Clonar el repositorio
 
 ```bash
-git clone PEGAR_AQUI_LINK_DEL_REPO_BACKEND
+git clone https://github.com/Martinho777/series-tracker-backend
 cd series-tracker-backend
 ```
 
