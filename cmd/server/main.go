@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"series-tracker-backend/internal/db"
 	"series-tracker-backend/internal/handlers"
@@ -72,8 +73,13 @@ func main() {
 
 	handlerWithCORS := middleware.EnableCORS(mux)
 
-	fmt.Println("Servidor corriendo en http://localhost:8080")
-	err = http.ListenAndServe(":8080", handlerWithCORS)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	fmt.Printf("Servidor corriendo en http://localhost:%s\n", port)
+	err = http.ListenAndServe(":"+port, handlerWithCORS)
 	if err != nil {
 		fmt.Println("Error al iniciar el servidor:", err)
 	}
