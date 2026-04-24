@@ -2,9 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"series-tracker-backend/internal/models"
 	"series-tracker-backend/internal/service"
@@ -180,4 +185,54 @@ func (h *SeriesHandler) DeleteSeries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *SeriesHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		utils.WriteError(w, http.StatusMethodNotAllowed, "Método no permitido")
+		return
+	}
+
+	const maxFileSize = 1 << 20 // 1 MB
+
+	err := r.ParseMultipartForm(maxFileSize)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, "No se pudo procesar el formulario o el archivo excede 1 MB")
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("image")
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, "Debes enviar un archivo en el campo 'image'")
+		return
+	}
+	defer file.Close()
+
+	contentType := fileHeader.Header.Get("Content-Type")
+	if !strings.HasPrefix(contentType, "image/") {
+		utils.WriteError(w, http.StatusBadRequest, "El archivo debe ser una imagen válida")
+		return
+	}
+
+	fileName := fmt.Sprintf("%d_%s", time.Now().UnixNano(), filepath.Base(fileHeader.Filename))
+	filePath := filepath.Join("uploads", fileName)
+
+	dst, err := os.Create(filePath)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, "No se pudo guardar la imagen")
+		return
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, "No se pudo copiar la imagen")
+		return
+	}
+
+	imageURL := fmt.Sprintf("http://localhost:8080/uploads/%s", fileName)
+
+	utils.WriteJSON(w, http.StatusCreated, map[string]string{
+		"image_url": imageURL,
+	})
 }
