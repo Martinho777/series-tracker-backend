@@ -230,7 +230,17 @@ func (h *SeriesHandler) UploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	imageURL := fmt.Sprintf("http://localhost:8080/uploads/%s", fileName)
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+
+	forwardedProto := r.Header.Get("X-Forwarded-Proto")
+	if forwardedProto != "" {
+		scheme = forwardedProto
+	}
+
+	imageURL := fmt.Sprintf("%s://%s/uploads/%s", scheme, r.Host, fileName)
 
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{
 		"image_url": imageURL,
