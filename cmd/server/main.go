@@ -32,31 +32,37 @@ func main() {
 	})
 
 	mux.HandleFunc("/series", func(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		seriesHandler.GetAllSeries(w, r)
-	case http.MethodPost:
-		seriesHandler.CreateSeries(w, r)
-	default:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprint(w, `{"error":"Método no permitido"}`)
-	}
+		switch r.Method {
+		case http.MethodGet:
+			seriesHandler.GetAllSeries(w, r)
+		case http.MethodPost:
+			seriesHandler.CreateSeries(w, r)
+		default:
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			fmt.Fprint(w, `{"error":"Método no permitido"}`)
+		}
 	})
 
 	mux.HandleFunc("/series/", func(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		seriesHandler.GetSeriesByID(w, r)
-	case http.MethodPut:
-		seriesHandler.UpdateSeries(w, r)
-	case http.MethodDelete:
-		seriesHandler.DeleteSeries(w, r)
-	default:
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprint(w, `{"error":"Método no permitido"}`)
-	}
+		switch r.Method {
+		case http.MethodGet:
+			seriesHandler.GetSeriesByID(w, r)
+		case http.MethodPut:
+			seriesHandler.UpdateSeries(w, r)
+		case http.MethodDelete:
+			seriesHandler.DeleteSeries(w, r)
+		default:
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			fmt.Fprint(w, `{"error":"Método no permitido"}`)
+		}
+	})
+
+	mux.Handle("/openapi.yaml", http.FileServer(http.Dir(".")))
+	mux.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir("./docs"))))
+	mux.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/docs/", http.StatusMovedPermanently)
 	})
 
 	handlerWithCORS := middleware.EnableCORS(mux)

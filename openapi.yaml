@@ -1,0 +1,355 @@
+openapi: 3.0.3
+info:
+  title: Series Tracker API
+  description: API REST para gestionar series de television con operaciones CRUD, busqueda, ordenamiento y paginacion.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor local de desarrollo
+
+tags:
+  - name: Series
+    description: Operaciones relacionadas con las series
+
+paths:
+  /series:
+    get:
+      tags:
+        - Series
+      summary: Obtener lista de series
+      description: Retorna una lista de series con soporte para busqueda, ordenamiento y paginacion.
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Texto para buscar por titulo
+          example: dark
+
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [id, titulo, anio, temporadas]
+          description: Campo por el cual ordenar
+          example: titulo
+
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Direccion del ordenamiento
+          example: asc
+
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: Numero de pagina
+          example: 1
+
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+          description: Cantidad de resultados por pagina
+          example: 4
+
+      responses:
+        '200':
+          description: Lista de series obtenida correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Serie'
+              examples:
+                ejemploLista:
+                  value:
+                    - id: 1
+                      titulo: Dark
+                      genero: Ciencia ficcion
+                      anio: 2017
+                      temporadas: 3
+                      imagen_url: https://example.com/dark.jpg
+                      descripcion: Serie alemana de misterio y viajes en el tiempo.
+                    - id: 2
+                      titulo: The Bear
+                      genero: Drama
+                      anio: 2022
+                      temporadas: 2
+                      imagen_url: https://example.com/thebear.jpg
+                      descripcion: Serie sobre cocina, presion y crecimiento personal.
+
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Series
+      summary: Crear una nueva serie
+      description: Crea una nueva serie en la base de datos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SerieInput'
+            examples:
+              ejemploCreacion:
+                value:
+                  titulo: Arcane
+                  genero: Animacion
+                  anio: 2021
+                  temporadas: 1
+                  imagen_url: https://example.com/arcane.jpg
+                  descripcion: Serie animada basada en el universo de League of Legends.
+
+      responses:
+        '201':
+          description: Serie creada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Serie'
+
+        '400':
+          description: Datos invalidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /series/{id}:
+    get:
+      tags:
+        - Series
+      summary: Obtener una serie por ID
+      description: Retorna una serie especifica usando su identificador.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la serie
+          example: 1
+
+      responses:
+        '200':
+          description: Serie encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Serie'
+
+        '400':
+          description: ID invalido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Serie no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Series
+      summary: Actualizar una serie
+      description: Actualiza una serie existente usando su ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la serie
+          example: 1
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SerieInput'
+            examples:
+              ejemploActualizacion:
+                value:
+                  titulo: Dark Updated
+                  genero: Ciencia ficcion
+                  anio: 2017
+                  temporadas: 3
+                  imagen_url: https://example.com/dark-updated.jpg
+                  descripcion: Version actualizada de la serie Dark.
+
+      responses:
+        '200':
+          description: Serie actualizada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Serie'
+
+        '400':
+          description: Datos invalidos o ID invalido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Serie no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Series
+      summary: Eliminar una serie
+      description: Elimina una serie existente usando su ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID de la serie
+          example: 1
+
+      responses:
+        '204':
+          description: Serie eliminada correctamente
+
+        '400':
+          description: ID invalido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '404':
+          description: Serie no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    Serie:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        titulo:
+          type: string
+          example: Dark
+        genero:
+          type: string
+          example: Ciencia ficcion
+        anio:
+          type: integer
+          example: 2017
+        temporadas:
+          type: integer
+          example: 3
+        imagen_url:
+          type: string
+          nullable: true
+          example: https://example.com/dark.jpg
+        descripcion:
+          type: string
+          nullable: true
+          example: Serie alemana de misterio y viajes en el tiempo.
+      required:
+        - id
+        - titulo
+        - genero
+        - anio
+        - temporadas
+
+    SerieInput:
+      type: object
+      properties:
+        titulo:
+          type: string
+          example: Arcane
+        genero:
+          type: string
+          example: Animacion
+        anio:
+          type: integer
+          minimum: 1900
+          example: 2021
+        temporadas:
+          type: integer
+          minimum: 1
+          example: 1
+        imagen_url:
+          type: string
+          nullable: true
+          example: https://example.com/arcane.jpg
+        descripcion:
+          type: string
+          nullable: true
+          example: Serie animada basada en el universo de League of Legends.
+      required:
+        - titulo
+        - genero
+        - anio
+        - temporadas
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Serie no encontrada
+      required:
+        - error
